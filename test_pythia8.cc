@@ -16,15 +16,15 @@ int main() {
     Pythia pythia;
 
     // Proton-proton collisions at LHC energy
-    pythia.readString("Beams:idA = 2212");
+    pythia.readString("Beams:idA = 2212"); // 2212 is proton
     pythia.readString("Beams:idB = 2212");
-    pythia.readString("Beams:eCM = 13000.");
+    pythia.readString("Beams:eCM = 13000."); // 13 TeV
 
     // Hard QCD jet production
-    pythia.readString("HardQCD:all = on");
+    pythia.readString("HardQCD:all = on"); // alle qcd shit
 
     // Rare high-pT region
-    pythia.readString("PhaseSpace:pTHatMin = 500.");
+    pythia.readString("PhaseSpace:pTHatMin = 500."); // Alleen >500 GeV HS events are created
 
     int nEvents = 1000;
 
