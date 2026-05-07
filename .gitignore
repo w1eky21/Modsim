@@ -1,0 +1,13 @@
+# PYTHIA installation
+pythia8317/
+pythia8317.tgz
+
+# Python virtual environment
+project/
+
+# old/large data
+pythia8_qcd_1.promc
+
+#venv 
+venv
+pythia/
