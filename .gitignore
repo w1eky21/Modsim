@@ -6,7 +6,8 @@ pythia8317.tgz
 project/
 
 # old/large data
-pt_output.txt
+pt_output_*
+qcd_*
 
 #venv 
 venv
