@@ -6,7 +6,7 @@ pythia8317.tgz
 project/
 
 # old/large data
-pythia8_qcd_1.promc
+pt_output.txt
 
 #venv 
 venv
