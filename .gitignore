@@ -12,3 +12,6 @@ qcd_*
 #venv 
 venv
 pythia/
+
+# plots
+pt_histogram_*
