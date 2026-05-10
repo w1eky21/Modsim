@@ -15,3 +15,6 @@ pythia/
 
 # plots
 pt_histogram_*
+
+#data
+static_importance*

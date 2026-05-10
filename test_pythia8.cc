@@ -18,25 +18,20 @@ int main() {
 
     Pythia pythia;
 
-    // Proton-proton collisions at LHC energy
-    pythia.readString("Beams:idA = 2212"); // proton
+    pythia.readString("Beams:idA = 2212");
     pythia.readString("Beams:idB = 2212");
-    pythia.readString("Beams:eCM = 13000."); // 13 TeV
+    pythia.readString("Beams:eCM = 13000.");
 
-    // Hard QCD jet production
     pythia.readString("HardQCD:all = on");
 
-    // pT cutoff value
     double ptCut = 0.0;
 
-    // Rare high-pT region
     pythia.readString("PhaseSpace:pTHatMin = " + to_string(ptCut));
 
     int nEvents = 1000;
 
     pythia.init();
 
-    // Output filenames include pT cutoff
     string csvFilename = "qcd_highpt_events_ptcut_"
                        + to_string((int)ptCut)
                        + ".csv";
@@ -48,7 +43,7 @@ int main() {
     ofstream csvOut(csvFilename);
     ofstream txtOut(txtFilename);
 
-    csvOut << "event,particle,id,status,px,py,pz,E,pT,eta,phi\n";
+    csvOut << "event,particle,id,status,px,py,pz,E,pT,eta,phi,weight,sigmaGen\n";
     txtOut << "# event particle_id name pT\n";
 
     int accepted = 0;
@@ -58,6 +53,9 @@ int main() {
         if (!pythia.next()) continue;
         accepted++;
 
+        double weight = pythia.info.weight();
+        double sigmaGen = pythia.info.sigmaGen();
+
         cout << "Event " << iEvent << endl;
 
         for (int i = 0; i < pythia.event.size(); ++i) {
@@ -66,14 +64,12 @@ int main() {
 
             double pt = pythia.event[i].pT();
 
-            // Print pT information to terminal
             cout << "Particle "
                  << pythia.event[i].name()
                  << "  pT = "
                  << pt
                  << " GeV" << endl;
 
-            // Save full particle information to CSV
             csvOut << iEvent << ","
                    << i << ","
                    << pythia.event[i].id() << ","
@@ -84,10 +80,11 @@ int main() {
                    << pythia.event[i].e() << ","
                    << pt << ","
                    << pythia.event[i].eta() << ","
-                   << pythia.event[i].phi()
+                   << pythia.event[i].phi() << ","
+                   << weight << ","
+                   << sigmaGen
                    << "\n";
 
-            // Save simpler pT output to TXT
             txtOut << iEvent << " "
                    << pythia.event[i].id() << " "
                    << pythia.event[i].name() << " "
