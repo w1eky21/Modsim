@@ -5,6 +5,8 @@
   -Wl,-rpath,pythia8317/lib \
   -o fixed_bias
 
+// run like this: ./fixed_bias 100000 2.0 15.0 0.0 fixed_bias_pow2.csv
+
 #include "Pythia8/Pythia.h"
 #include <fstream>
 #include <iostream>
@@ -18,7 +20,7 @@ using namespace Pythia8;
 int main(int argc, char* argv[]) {
 
     int nEvents = 100000;
-    double biasPow = 4.0;
+    double biasPow = 3.0;
     double biasRef = 15.0;
     double pTHatMin = 0.0;
     double pTHatMax = 0.0;

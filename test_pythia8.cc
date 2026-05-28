@@ -1,10 +1,8 @@
+// venv: source pythia/bin/activate
 // Compile with:
 //
-// g++ test_pythia8.cc -o test_pythia8 \
- -Ipythia8317/include \
- -Lpythia8317/lib \
- -lpythia8 \
- -Wl,-rpath,pythia8317/lib
+// g++ -O2 -std=c++11 test_pythia_build_in_ptcut.cc   -Ipythia8317/include   -Lpythia8317/lib   -l
+//pythia8   -Wl,-rpath,pythia8317/lib   -o ptcut_eventlevel
 
 #include "Pythia8/Pythia.h"
 #include <iostream>

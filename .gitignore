@@ -18,3 +18,9 @@ pt_histogram_*
 
 #data
 static_importance*
+
+ptcut_eventlevel
+power_exp_bias
+
+bias_comparison_plot*
+bias_comparison_summary.csv
