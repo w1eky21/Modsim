@@ -7,38 +7,44 @@ outdir = "bias_comparison_plots2"
 os.makedirs(outdir, exist_ok=True)
 
 files = {
-    "naive": "phase_space_naive.csv",
+    "naive": "../phase_spaces/phase_space_naive.csv",
 
-    "pow1": "fixed_bias_pow1.csv",
-    "pow2": "fixed_bias_pow2.csv",
-    "pow3": "fixed_bias_pow3.csv",
-    "pow4": "fixed_bias_pow4.csv",
-    "pow6": "fixed_bias_pow6.csv",
+    "pow1": "pow/fixed_bias_pow1.csv",
+    "pow2": "pow/fixed_bias_pow2.csv",
+    "pow3": "pow/fixed_bias_pow3.csv",
+    "pow4": "pow/fixed_bias_pow4.csv",
+    "pow6": "pow/fixed_bias_pow6.csv",
 
-     # Pythia hard pTHat cuts 
-    "ptcut_10": "qcd_highpt_events_ptcut_10.csv",
-    "ptcut_50": "qcd_highpt_events_ptcut_50.csv",
-    "ptcut_100": "qcd_highpt_events_ptcut_100.csv",
-    "ptcut_500": "qcd_highpt_events_ptcut_500_eventlevel.csv",
+    "ptcut_10": "ptcut/qcd_highpt_events_ptcut_10.csv",
+    "ptcut_50": "ptcut/qcd_highpt_events_ptcut_50.csv",
+    "ptcut_100": "ptcut/qcd_highpt_events_ptcut_100.csv",
+    "ptcut_500": "ptcut/qcd_highpt_events_ptcut_500_eventlevel.csv",
 
-    "sat_n1_p010": "saturating_n1_p010.csv",
-    "sat_n2_p010": "saturating_n2_p010.csv",
-    "sat_n3_p010": "saturating_n3_p010.csv",
-    "sat_n1_p020": "saturating_n1_p020.csv",
-    "sat_n2_p020": "saturating_n2_p020.csv",
-    "sat_n3_p020": "saturating_n3_p020.csv",
-    "sat_n1_p050": "saturating_n1_p050.csv",
-    "sat_n2_p050": "saturating_n2_p050.csv",
-    "sat_n3_p050": "saturating_n3_p050.csv",
+    "sat_n1_p010": "saturating/saturating_n1_p010.csv",
+    "sat_n2_p010": "saturating/saturating_n2_p010.csv",
+    "sat_n3_p010": "saturating/saturating_n3_p010.csv",
+    "sat_n1_p020": "saturating/saturating_n1_p020.csv",
+    "sat_n2_p020": "saturating/saturating_n2_p020.csv",
+    "sat_n3_p020": "saturating/saturating_n3_p020.csv",
+    "sat_n1_p050": "saturating/saturating_n1_p050.csv",
+    "sat_n2_p050": "saturating/saturating_n2_p050.csv",
+    "sat_n3_p050": "saturating/saturating_n3_p050.csv",
 
-    "powexp_n3_cut200": "powexp_n3_p015_cut200.csv",
-    "powexp_n4_cut200": "powexp_n4_p015_cut200.csv",
-    "powexp_n4_cut500": "powexp_n4_p015_cut500.csv",
-    "powexp_n5_cut500": "powexp_n5_p015_cut500.csv",
+    "powexp_n3_cut200": "powexp/powexp_n3_p015_cut200.csv",
+    "powexp_n4_cut200": "powexp/powexp_n4_p015_cut200.csv",
+    "powexp_n4_cut500": "powexp/powexp_n4_p015_cut500.csv",
+    "powexp_n5_cut500": "powexp/powexp_n5_p015_cut500.csv",
 
-    "bump_A50_pc75": "bump_A50_pc75_sig08.csv",
-    "bump_A100_pc100": "bump_A100_pc100_sig08.csv",
-    "bump_A100_pc150": "bump_A100_pc150_sig10.csv",
+    "bump_A50_pc75": "lognormal/bump_A50_pc75_sig08.csv",
+    "bump_A100_pc100": "lognormal/bump_A100_pc100_sig08.csv",
+    "bump_A100_pc150": "lognormal/bump_A100_pc150_sig10.csv",
+
+    # new UserHooks multivariable phase-space biases
+    "multi_a10_b05": "phase_space_biases/multivar_a10_b05_c00.csv",
+    "multi_a15_b05": "phase_space_biases/multivar_a15_b05_c00.csv",
+    "multi_a20_b05": "phase_space_biases/multivar_a20_b05_c00.csv",
+    "multi_a15_b10": "phase_space_biases/multivar_a15_b10_c00.csv",
+    "multi_a15_b05_c025": "phase_space_biases/multivar_a15_b05_c025.csv",
 }
 
 thresholds = [10, 20, 50, 100]
@@ -222,6 +228,11 @@ candidate_labels = [
     "bump_A50_pc75",
     "bump_A100_pc100",
     "bump_A100_pc150",
+    "multi_a10_b05",
+    "multi_a15_b05",
+    "multi_a20_b05",
+    "multi_a15_b10",
+    "multi_a15_b05_c025",
 ]
 
 candidate_summary = summary[summary["label"].isin(candidate_labels)]
