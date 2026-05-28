@@ -25,9 +25,11 @@ power_exp_bias
 bias_comparison_plot*
 bias_comparison_summary.csv
 
-fixed_bias
-lognormal_bump_bias
-test_pythia8
+# executables
+/fixed_bias
+/lognormal_bump_bias
+/test_pythia8
+
 
 # plots
 *.png
