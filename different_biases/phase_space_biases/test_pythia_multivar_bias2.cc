@@ -1,5 +1,5 @@
 // Compile with:
-// g++ test_pythia_multivar_bias.cc -o multivar_bias \
+// g++ test_pythia_multivar_bias2.cc -o multivar_bias2 \
   -I../../pythia8317/include \
   -L../../pythia8317/lib \
   -lpythia8 \
