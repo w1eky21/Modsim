@@ -4,6 +4,7 @@
   -L../../pythia8317/lib \
   -lpythia8 \
   -Wl,-rpath,../../pythia8317/lib
+
 #include "Pythia8/Pythia.h"
 #include "Pythia8/UserHooks.h"
 
@@ -22,30 +23,51 @@ using namespace std;
 class MultiVariableBias : public UserHooks {
 public:
 
-    // Tunable parameters
-    double a;        // pTHat power
-    double b;        // x1*x2 power
-    double c;        // Q2Fac power
+    // Exponents / strengths
+    double a_pT;       // power-law pTHat bias
+    double b_xprod;    // x1*x2 bias
+    double c_Q2;       // Q2Fac bias
+    double d_alphaS;   // inverse alphaS bias
+    double e_logpT;    // logarithmic pTHat bias
+    double f_satpT;    // saturating pTHat bias
+    double g_tworegion; // two-region pTHat bias
+
+    // Reference scales
     double pT0;
     double xprod0;
     double Q20;
+    double alphaS0;
+    double pTswitch;
     double maxBias;
 
     MultiVariableBias(
-        double aIn = 1.5,
-        double bIn = 0.5,
-        double cIn = 0.0,
+        double a_pTIn = 1.5,
+        double b_xprodIn = 0.5,
+        double c_Q2In = 0.0,
+        double d_alphaSIn = 0.0,
+        double e_logpTIn = 0.0,
+        double f_satpTIn = 0.0,
+        double g_tworegionIn = 0.0,
         double pT0In = 10.0,
         double xprod0In = 1e-4,
         double Q20In = 100.0,
+        double alphaS0In = 0.12,
+        double pTswitchIn = 50.0,
         double maxBiasIn = 1000.0
     ) {
-        a = aIn;
-        b = bIn;
-        c = cIn;
+        a_pT = a_pTIn;
+        b_xprod = b_xprodIn;
+        c_Q2 = c_Q2In;
+        d_alphaS = d_alphaSIn;
+        e_logpT = e_logpTIn;
+        f_satpT = f_satpTIn;
+        g_tworegion = g_tworegionIn;
+
         pT0 = pT0In;
         xprod0 = xprod0In;
         Q20 = Q20In;
+        alphaS0 = alphaS0In;
+        pTswitch = pTswitchIn;
         maxBias = maxBiasIn;
     }
 
@@ -58,8 +80,6 @@ public:
                            bool inEvent) override {
 
         int nFinal = sigmaProcessPtr->nFinal();
-
-        // Only use pTHat for 2 -> 2 processes
         if (nFinal != 2) return 1.0;
 
         double pTHat = phaseSpacePtr->pTHat();
@@ -68,25 +88,53 @@ public:
         double xprod = x1 * x2;
 
         double Q2Fac = sigmaProcessPtr->Q2Fac();
+        //double alphaS = sigmaProcessPtr->alphaS();
 
         double bias = 1.0;
 
-        // pTHat bias
-        if (pTHat > 0.0 && a != 0.0) {
-            bias *= pow(pTHat / pT0, a);
+        // 1. Power-law pTHat bias:
+        // (pTHat / pT0)^a
+        if (pTHat > 0.0 && a_pT != 0.0) {
+            bias *= pow(pTHat / pT0, a_pT);
         }
 
-        // x1*x2 bias
-        if (xprod > 0.0 && b != 0.0) {
-            bias *= pow(xprod / xprod0, b);
+        // 2. x1*x2 phase-space bias:
+        // (x1*x2 / xprod0)^b
+        if (xprod > 0.0 && b_xprod != 0.0) {
+            bias *= pow(xprod / xprod0, b_xprod);
         }
 
-        // Q2Fac bias
-        if (Q2Fac > 0.0 && c != 0.0) {
-            bias *= pow(Q2Fac / Q20, c);
+        // 3. Q2Fac bias:
+        // (Q2Fac / Q20)^c
+        if (Q2Fac > 0.0 && c_Q2 != 0.0) {
+            bias *= pow(Q2Fac / Q20, c_Q2);
         }
 
-        // Keep bias within safe range
+        // 4. Inverse alphaS bias:
+        // (alphaS0 / alphaS)^d
+        //if (alphaS > 0.0 && d_alphaS != 0.0) {
+        //    bias *= pow(alphaS0 / alphaS, d_alphaS);
+        //}
+
+        // 5. Logarithmic pTHat bias:
+        // [log(1 + pTHat/pT0)]^e
+        if (pTHat > 0.0 && e_logpT != 0.0) {
+            bias *= pow(log(1.0 + pTHat / pT0), e_logpT);
+        }
+
+        // 6. Saturating pTHat bias:
+        // [1 + pTHat/(pTHat+pT0)]^f
+        if (pTHat > 0.0 && f_satpT != 0.0) {
+            double sat = 1.0 + pTHat / (pTHat + pT0);
+            bias *= pow(sat, f_satpT);
+        }
+
+        // 7. Two-region pTHat bias:
+        // no bias below pTswitch, power-law above pTswitch
+        if (pTHat > pTswitch && g_tworegion != 0.0) {
+            bias *= pow(pTHat / pTswitch, g_tworegion);
+        }
+
         bias = max(1.0, bias);
         bias = min(maxBias, bias);
 
@@ -105,16 +153,24 @@ int main(int argc, char* argv[]) {
     // Example:
     // ./multivar_bias 1.5 0.5 0.0 multivar_a15_b05_c00.csv
 
-    double a = 1.5;
-    double b = 0.5;
-    double c = 0.0;
-    string outFile = "multivar_bias.csv";
+    double a_pT = 1.5;
+double b_xprod = 0.5;
+double c_Q2 = 0.0;
+//double d_alphaS = 0.0;
+double e_logpT = 0.0;
+double f_satpT = 0.0;
+double g_tworegion = 0.0;
 
-    if (argc > 1) a = atof(argv[1]);
-    if (argc > 2) b = atof(argv[2]);
-    if (argc > 3) c = atof(argv[3]);
-    if (argc > 4) outFile = argv[4];
+string outFile = "multivar_bias.csv";
 
+if (argc > 1) a_pT = atof(argv[1]);
+if (argc > 2) b_xprod = atof(argv[2]);
+if (argc > 3) c_Q2 = atof(argv[3]);
+//if (argc > 4) d_alphaS = atof(argv[4]); //moet argv nummer aanpassen als je wil gebruiken
+if (argc > 4) e_logpT = atof(argv[4]);
+if (argc > 5) f_satpT = atof(argv[5]);
+if (argc > 6) g_tworegion = atof(argv[6]);
+if (argc > 7) outFile = argv[7];
     int nEvents = 100000;
 
     Pythia pythia;
@@ -132,15 +188,21 @@ int main(int argc, char* argv[]) {
 
     // Attach custom UserHooks bias
     shared_ptr<UserHooks> userHooks =
-        make_shared<MultiVariableBias>(
-            a,      // pTHat power
-            b,      // x1*x2 power
-            c,      // Q2Fac power
-            10.0,   // pT0
-            1e-4,   // xprod0
-            100.0,  // Q20
-            1000.0  // maxBias
-        );
+    make_shared<MultiVariableBias>(
+        a_pT,
+        b_xprod,
+        c_Q2,
+       // d_alphaS,
+        e_logpT,
+        f_satpT,
+        g_tworegion,
+        10.0,    // pT0
+        1e-4,    // xprod0
+        100.0,   // Q20
+       // 0.12,    // alphaS0
+        50.0,    // pTswitch
+        1000.0   // maxBias
+    );
 
     pythia.setUserHooksPtr(userHooks);
 
@@ -172,7 +234,7 @@ int main(int argc, char* argv[]) {
 
         double Q2Fac = pythia.info.Q2Fac();
         double Q2Ren = pythia.info.Q2Ren();
-        double alphaS = pythia.info.alphaS();
+       // double alphaS = pythia.info.alphaS();
         double alphaEM = pythia.info.alphaEM();
 
         int id1 = pythia.info.id1();
@@ -213,7 +275,7 @@ int main(int argc, char* argv[]) {
             << uHat << ","
             << Q2Fac << ","
             << Q2Ren << ","
-            << alphaS << ","
+           // << alphaS << ","
             << alphaEM << ","
             << id1 << ","
             << id2 << ","
@@ -230,9 +292,14 @@ int main(int argc, char* argv[]) {
 
     cout << "Finished multivariable bias run." << endl;
     cout << "Output file: " << outFile << endl;
-    cout << "Parameters: a = " << a
-         << ", b = " << b
-         << ", c = " << c << endl;
+    cout << "a_pT       = " << a_pT << endl;
+    cout << "b_xprod    = " << b_xprod << endl;
+    cout << "c_Q2       = " << c_Q2 << endl;
+    //cout << "d_alphaS   = " << d_alphaS << endl;
+    cout << "e_logpT    = " << e_logpT << endl;
+    cout << "f_satpT    = " << f_satpT << endl;
+    cout << "g_tworegion= " << g_tworegion << endl;
 
     return 0;
 }
+

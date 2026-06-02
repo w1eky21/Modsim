@@ -45,6 +45,10 @@ files = {
     "multi_a20_b05": "phase_space_biases/multivar_a20_b05_c00.csv",
     "multi_a15_b10": "phase_space_biases/multivar_a15_b10_c00.csv",
     "multi_a15_b05_c025": "phase_space_biases/multivar_a15_b05_c025.csv",
+    "ptq2": "phase_space_biases/ptq2.csv",
+    "ptq2_strong": "phase_space_biases/ptq2_strong.csv",
+    "full_multivar": "phase_space_biases/full_multivar.csv",
+    "full_multivar_strong": "phase_space_biases/full_multivar2.csv",
 }
 
 thresholds = [10, 20, 50, 100]
