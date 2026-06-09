@@ -1,0 +1,14 @@
+label = two_region_only
+a_pT = 0
+b_xprod = 0
+c_Q2 = 0
+e_logpT = 0
+f_satpT = 0
+g_tworegion = 8
+nEvents = 20000
+accepted = 20000
+failed = 0
+NeffManualOverN = 0.99896
+fracPT50 = 0.00045
+scorePT50 = 0.000449532
+biasCalls = 176848

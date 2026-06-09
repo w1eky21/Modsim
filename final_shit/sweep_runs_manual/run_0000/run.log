@@ -1,0 +1,14 @@
+label = naive
+a_pT = 0
+b_xprod = 0
+c_Q2 = 0
+e_logpT = 0
+f_satpT = 0
+g_tworegion = 0
+nEvents = 100000
+accepted = 100000
+failed = 0
+NeffManualOverN = 0.99943
+fracPT50 = 2e-05
+scorePT50 = 1.99886e-05
+biasCalls = 873398

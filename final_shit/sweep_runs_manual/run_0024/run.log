@@ -1,0 +1,14 @@
+label = logpT_only
+a_pT = 0
+b_xprod = 0
+c_Q2 = 0
+e_logpT = 4
+f_satpT = 0
+g_tworegion = 0
+nEvents = 20000
+accepted = 20000
+failed = 0
+NeffManualOverN = 0.998781
+fracPT50 = 0.0002
+scorePT50 = 0.000199756
+biasCalls = 177117

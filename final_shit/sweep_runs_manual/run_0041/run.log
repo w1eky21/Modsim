@@ -1,0 +1,14 @@
+label = abc_diagonal
+a_pT = 2.4
+b_xprod = 0.14
+c_Q2 = 0.14
+e_logpT = 0
+f_satpT = 0
+g_tworegion = 0
+nEvents = 20000
+accepted = 20000
+failed = 0
+NeffManualOverN = 0.991906
+fracPT50 = 0.00225
+scorePT50 = 0.00223179
+biasCalls = 186120

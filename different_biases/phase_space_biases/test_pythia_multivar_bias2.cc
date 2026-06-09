@@ -192,6 +192,7 @@ if (argc > 7) outFile = argv[7];
         a_pT,
         b_xprod,
         c_Q2,
+        0.0, // still expects alphaS
        // d_alphaS,
         e_logpT,
         f_satpT,
@@ -220,6 +221,20 @@ if (argc > 7) outFile = argv[7];
     for (int iEvent = 0; iEvent < nEvents; ++iEvent) {
 
         if (!pythia.next()) continue;
+
+        // Test Pythia weights for first accepted events
+        static int printed = 0;
+
+        if (printed < 20) {
+            double w = pythia.info.weight();
+
+            cout << "event " << printed
+                << "  pTHat = " << pythia.info.pTHat()
+                << "  weight = " << w
+                << endl;
+
+            printed++;
+}
 
         double x1 = pythia.info.x1();
         double x2 = pythia.info.x2();

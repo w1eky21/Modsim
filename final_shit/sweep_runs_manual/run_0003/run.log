@@ -1,0 +1,14 @@
+label = old_peak
+a_pT = 4
+b_xprod = 0.3
+c_Q2 = 0.3
+e_logpT = 0
+f_satpT = 0
+g_tworegion = 0
+nEvents = 100000
+accepted = 100000
+failed = 0
+NeffManualOverN = 0.951575
+fracPT50 = 0.00931
+scorePT50 = 0.00885916
+biasCalls = 820883

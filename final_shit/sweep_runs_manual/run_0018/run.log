@@ -1,0 +1,14 @@
+label = Q2_only
+a_pT = 0
+b_xprod = 0
+c_Q2 = 0.8
+e_logpT = 0
+f_satpT = 0
+g_tworegion = 0
+nEvents = 20000
+accepted = 20000
+failed = 0
+NeffManualOverN = 0.997977
+fracPT50 = 0.00025
+scorePT50 = 0.000249494
+biasCalls = 232714

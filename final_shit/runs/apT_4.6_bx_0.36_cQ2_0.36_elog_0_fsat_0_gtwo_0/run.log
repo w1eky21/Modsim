@@ -1,0 +1,14 @@
+a_pT = 4.6
+b_xprod = 0.36
+c_Q2 = 0.36
+d_alphaS = 0  # disabled
+e_logpT = 0
+f_satpT = 0
+g_tworegion = 0
+nEvents = 100000
+accepted = 100000
+failed = 0
+NeffPythiaOverN = 0.999149
+NeffManualOverN = 0.924381
+fracPT50 = 0.00963
+biasCalls = 856625

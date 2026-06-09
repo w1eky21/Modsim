@@ -1,0 +1,14 @@
+label = satpT_only
+a_pT = 0
+b_xprod = 0
+c_Q2 = 0
+e_logpT = 0
+f_satpT = 1
+g_tworegion = 0
+nEvents = 20000
+accepted = 20000
+failed = 0
+NeffManualOverN = 0.996749
+fracPT50 = 0
+scorePT50 = 0
+biasCalls = 203736
