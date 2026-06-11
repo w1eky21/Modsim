@@ -19,7 +19,7 @@
 //
 // Run:
 //   ./clean 10 100000 clean_summary.csv adaptive_events 0 0.05
-//
+// q
 // Arguments:
 //   argv[1] = number of adaptive iterations       default 10
 //   argv[2] = generated events per iteration      default 100000
