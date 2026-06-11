@@ -48,13 +48,10 @@
 using namespace Pythia8;
 using namespace std;
 
-// ------------------------------------------------------------
-// Explanation:
 // Temporarily redirects stdout and stderr to /dev/null. This is used only
 // around Pythia initialization/event generation so the Pythia welcome banner
 // and event listings do not flood the terminal. Our own iteration summaries
 // are printed outside this silencer.
-// ------------------------------------------------------------
 class TerminalSilencer {
 public:
     explicit TerminalSilencer(bool activeIn) : active(activeIn), oldOut(-1), oldErr(-1), nullFd(-1) {
@@ -122,13 +119,10 @@ struct BatchResult {
     double score = 0.0;
 };
 
-// ------------------------------------------------------------
-// Explanation:
 // Computes the same bias factor that is returned to Pythia in the UserHook.
 // This factor makes selected phase-space points more likely. Since this custom
 // hook is corrected manually, the physical event weight is divided by this
 // bias factor after the event is accepted.
-// ------------------------------------------------------------
 static double computeBiasFactor(const BiasParams& p,
                                 double pTHat,
                                 double xprod,
@@ -165,12 +159,9 @@ static double computeBiasFactor(const BiasParams& p,
     return min(max(1.0, bias), maxBias);
 }
 
-// ------------------------------------------------------------
-// Explanation:
 // Pythia calls this hook during phase-space selection. Returning a number
 // larger than 1 makes that point more likely to be selected. The same value is
 // later recomputed and used for manual unbiasing.
-// ------------------------------------------------------------
 class MultiVariableBias : public UserHooks {
 public:
     explicit MultiVariableBias(const BiasParams& parsIn) : pars(parsIn) {}
@@ -192,11 +183,8 @@ private:
     BiasParams pars;
 };
 
-// ------------------------------------------------------------
-// Explanation:
 // Turns off normal Pythia print settings. The TerminalSilencer is still used
 // around init/next because some Pythia output may bypass these settings.
-// ------------------------------------------------------------
 static void configurePythia(Pythia& pythia) {
     pythia.readString("Print:quiet = on");
     pythia.readString("Init:showChangedSettings = off");
@@ -214,20 +202,14 @@ static void configurePythia(Pythia& pythia) {
     pythia.readString("PhaseSpace:pTHatMin = 0.");
 }
 
-// ------------------------------------------------------------
-// Explanation:
-// Bounded score in [0,1]. It is the harmonic mean of generated high-pT fraction
-// and Neff/N. A candidate only scores well if both terms are reasonably large.
-// ------------------------------------------------------------
+// To give our adaptive model a score to optimize we simply multiply
+// the 2 values we want to maximize since both are bounded [0,1].
 static double balancedScore(double fracPT50, double neffRatio) {
     return fracPT50 * neffRatio;
 }
 
-// ------------------------------------------------------------
-// Explanation:
 // Writes one optional event-level CSV. This is only needed for debugging or for
 // making detailed histograms. The summary CSV is always written separately.
-// ------------------------------------------------------------
 static void writeEventHeader(ofstream& out) {
     out << "event,x1,x2,xprod,sHat,mHat,pTHat,pT2Hat,tHat,uHat,"
         << "Q2Fac,Q2Ren,alphaS,alphaEM,id1,id2,code,"
@@ -235,11 +217,9 @@ static void writeEventHeader(ofstream& out) {
         << "maxFinalParticlePT,nFinalParticles,nChargedFinal\n";
 }
 
-// ------------------------------------------------------------
-// Explanation:
+
 // Runs one batch for one parameter candidate. It computes generated fractions,
 // manually weighted fractions, Neff, and the bounded balanced score.
-// ------------------------------------------------------------
 static BatchResult runBatch(const BiasParams& pars,
                             int nEvents,
                             int iter,
@@ -345,11 +325,8 @@ static BatchResult runBatch(const BiasParams& pars,
     return r;
 }
 
-// ------------------------------------------------------------
-// Explanation:
 // Keeps parameters inside broad but finite ranges. These ranges still search
 // all variables used in the bias function, while avoiding absurd values.
-// ------------------------------------------------------------
 static BiasParams clampParams(BiasParams p) {
     auto clamp = [](double x, double lo, double hi) { return max(lo, min(hi, x)); };
     p.a_pT        = clamp(p.a_pT,        0.0, 8.0);
@@ -362,14 +339,78 @@ static BiasParams clampParams(BiasParams p) {
     return p;
 }
 
-// ------------------------------------------------------------
-// Explanation:
 // Creates the next candidate by making a small local change around the best
-// candidate found so far. This is intentionally fine-tuned: it avoids the old
-// broad random jump every eighth iteration, because that made parameters such
-// as e, f and g suddenly become very large. All phase-space variables are still
+// candidate found so far. All phase-space variables are still
 // searched, but only one or two are nudged per iteration.
-// ------------------------------------------------------------
+
+/*------------------------------------------------------------
+ADAPTIVE PARAMETER SEARCH
+
+The goal is to find bias parameters that generate many high-pTHat
+events while keeping the event weights reasonably uniform.
+
+The bias function depends on six parameters:
+
+    a = pTHat power bias
+    b = xprod bias
+    c = Q2 bias
+    e = log(pTHat) bias
+    f = saturating pTHat bias
+    g = two-region pTHat bias
+
+At each iteration:
+
+1. Start from the best parameter set found so far.
+
+2. Choose one parameter to explore. The code cycles through
+
+       a -> b -> c -> e -> f -> g -> repeat
+
+   so every parameter gets a chance to be optimized.
+
+3. Apply a random perturbation to the chosen parameter.
+   The perturbation is Gaussian and becomes smaller later
+   in the run, allowing the search to transition from
+   exploration to fine-tuning.
+
+4. Apply occasional small random perturbations to the
+   remaining parameters. This helps discover correlations
+   between parameters and prevents the search from getting
+   trapped in simple one-dimensional scans.
+
+5. Generate a new sample of events using the proposed
+   parameter set.
+
+6. Compute the performance metrics:
+
+       fracPT50      = fraction of events with pTHat > 50 GeV
+       Neff/N        = effective sample-size ratio
+
+   where
+
+       Neff = (sum w)^2 / sum(w^2)
+
+   and w are the manually unbiased event weights.
+
+7. Compute the optimization score
+
+       score = fracPT50 * (Neff/N)
+
+   This is proportional to the effective fraction of useful
+   high-pTHat events. A good bias therefore produces many
+   pTHat > 50 GeV events while keeping the weight distribution
+   narrow.
+
+8. If the new score is better than the best score found so far,
+   the candidate becomes the new best parameter set.
+
+9. Repeat for the requested number of iterations.
+
+This is a simple stochastic hill-climbing algorithm:
+the search always explores around the current best solution
+and gradually refines the bias parameters.
+------------------------------------------------------------*/
+
 static BiasParams proposeCandidate(const BiasParams& best, int iter, mt19937& rng) {
     normal_distribution<double> N(0.0, 1.0);
     uniform_real_distribution<double> U(0.0, 1.0);
@@ -399,11 +440,8 @@ static BiasParams proposeCandidate(const BiasParams& best, int iter, mt19937& rn
     return clampParams(p);
 }
 
-// ------------------------------------------------------------
-// Explanation:
 // Writes one row per iteration. The weighted fractions are the physical
 // unbiasing checks; the generated fractions show sampling efficiency.
-// ------------------------------------------------------------
 static void writeSummaryHeader(ofstream& out) {
     out << "iteration,accepted,acceptable,bestSoFar,"
         << "a_pT,b_xprod,c_Q2,d_alphaS,e_logpT,f_satpT,g_tworegion,"
@@ -426,12 +464,9 @@ static void writeSummaryRow(ofstream& out, int iter, const BiasParams& p,
         << r.score << "\n";
 }
 
-// ------------------------------------------------------------
-// Explanation:
 // Main adaptive loop. It keeps the same command-line arguments as before,
 // runs one candidate per iteration, writes the summary CSV, and keeps the best
 // candidate according to the bounded balanced score.
-// ------------------------------------------------------------
 int main(int argc, char* argv[]) {
     int nIterations = 10;
     int nEventsPerBatch = 100000;
