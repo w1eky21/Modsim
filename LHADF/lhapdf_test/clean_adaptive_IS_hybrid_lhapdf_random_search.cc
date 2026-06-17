@@ -23,13 +23,17 @@
 // Added:
 //   - c_lumi: mild LHAPDF gluon-luminosity correction
 //
-// Compile example, adjust paths for your machine:
-//   g++ clean_adaptive_IS_hybrid_lhapdf_sampler.cc -o hybrid_lhapdf_sampler \
-//      -I../pythia8317/include -I/path/to/lhapdf/include \
-//      -L../pythia8317/lib -L/path/to/lhapdf/lib \
-//      -lpythia8 -lLHAPDF \
-//      -Wl,-rpath,../pythia8317/lib -Wl,-rpath,/path/to/lhapdf/lib \
-//      -std=c++17
+/* 
+g++ /home/wiek/Model_sim/modsim_project/LHADF/lhapdf_test/clean_adaptive_IS_hybrid_lhapdf_random_search.cc \
+  -o /home/wiek/Model_sim/modsim_project/LHADF/lhapdf_test/hybrid_lhapdf_random_search \
+  -I/home/wiek/Model_sim/modsim_project/pythia8317/include \
+  $(lhapdf-config --cxxflags) \
+  -L/home/wiek/Model_sim/modsim_project/pythia8317/lib \
+  $(lhapdf-config --ldflags) \
+  -lpythia8 -lLHAPDF \
+  -Wl,-rpath,/home/wiek/Model_sim/modsim_project/pythia8317/lib \
+  -std=c++17
+  */
 //
 // If LHAPDF data is installed in a non-standard directory, set e.g.:
 //   export LHAPDF_DATA_PATH=/path/to/lhapdf/share/LHAPDF
@@ -101,11 +105,11 @@ private:
 };
 
 struct BiasParams {
-    double a_pT        = 3.8;
-    double b_tau       = 0.14;
-    double c_lumi      = 0.05;
-    double e_logpT     = 0.65;
-    double g_tworegion = 0.35;
+    double a_pT        = 4.818;
+    double b_tau       = 0.152;
+    double c_lumi      = 0.082;
+    double e_logpT     = 0.654;
+    double g_tworegion = 0.102;
 };
 
 struct BatchResult {
@@ -125,11 +129,21 @@ struct BatchResult {
     double fracPT20 = 0.0;
     double fracPT50 = 0.0;
     double fracPT100 = 0.0;
+    double fracPT200 = 0.0;
+    double fracPT500 = 0.0;
+    double fracPT1000 = 0.0;
+    double fracPT1500 = 0.0;
+    double fracPT2000 = 0.0;
 
     double wFracPT10 = 0.0;
     double wFracPT20 = 0.0;
     double wFracPT50 = 0.0;
     double wFracPT100 = 0.0;
+    double wFracPT200 = 0.0;
+    double wFracPT500 = 0.0;
+    double wFracPT1000 = 0.0;
+    double wFracPT1500 = 0.0;
+    double wFracPT2000 = 0.0;
 
     double score = 0.0;
 };
@@ -256,8 +270,8 @@ static void configurePythia(Pythia& pythia) {
     pythia.readString("PhaseSpace:pTHatMin = 0.");
 }
 
-static double balancedScore(double fracPT50, double neffRatio) {
-    return fracPT50 * neffRatio;
+static double balancedScore(double fracPT100, double neffRatio) {
+    return fracPT100 * neffRatio;
 }
 
 static void writeEventHeader(ofstream& out) {
@@ -301,7 +315,9 @@ static BatchResult runBatch(const BiasParams& pars,
     BatchResult r;
     double sumPTHat = 0.0;
     int n10 = 0, n20 = 0, n50 = 0, n100 = 0;
+    int n200 = 0, n500 = 0, n1000 = 0, n1500 = 0, n2000 = 0;
     double w10 = 0.0, w20 = 0.0, w50 = 0.0, w100 = 0.0;
+    double w200 = 0.0, w500 = 0.0, w1000 = 0.0, w1500 = 0.0, w2000 = 0.0;
 
     TerminalSilencer silence(true);
     for (int iEvent = 0; iEvent < nEvents; ++iEvent) {
@@ -334,10 +350,15 @@ static BatchResult runBatch(const BiasParams& pars,
         sumPTHat += pTHat;
         r.maxPTHat = max(r.maxPTHat, pTHat);
 
-        if (pTHat > 10.0)  { ++n10;  w10  += manualWeight; }
-        if (pTHat > 20.0)  { ++n20;  w20  += manualWeight; }
-        if (pTHat > 50.0)  { ++n50;  w50  += manualWeight; }
-        if (pTHat > 100.0) { ++n100; w100 += manualWeight; }
+        if (pTHat > 10.0)   { ++n10;   w10   += manualWeight; }
+        if (pTHat > 20.0)   { ++n20;   w20   += manualWeight; }
+        if (pTHat > 50.0)   { ++n50;   w50   += manualWeight; }
+        if (pTHat > 100.0)  { ++n100;  w100  += manualWeight; }
+        if (pTHat > 200.0)  { ++n200;  w200  += manualWeight; }
+        if (pTHat > 500.0)  { ++n500;  w500  += manualWeight; }
+        if (pTHat > 1000.0) { ++n1000; w1000 += manualWeight; }
+        if (pTHat > 1500.0) { ++n1500; w1500 += manualWeight; }
+        if (pTHat > 2000.0) { ++n2000; w2000 += manualWeight; }
 
         if (saveEvents) {
             eventOut << iEvent << "," << x1 << "," << x2 << "," << tau << ","
@@ -365,12 +386,22 @@ static BatchResult runBatch(const BiasParams& pars,
     r.fracPT20 = double(n20) / r.accepted;
     r.fracPT50 = double(n50) / r.accepted;
     r.fracPT100 = double(n100) / r.accepted;
+    r.fracPT200 = double(n200) / r.accepted;
+    r.fracPT500 = double(n500) / r.accepted;
+    r.fracPT1000 = double(n1000) / r.accepted;
+    r.fracPT1500 = double(n1500) / r.accepted;
+    r.fracPT2000 = double(n2000) / r.accepted;
 
     if (r.sumW > 0.0) {
         r.wFracPT10 = w10 / r.sumW;
         r.wFracPT20 = w20 / r.sumW;
         r.wFracPT50 = w50 / r.sumW;
         r.wFracPT100 = w100 / r.sumW;
+        r.wFracPT200 = w200 / r.sumW;
+        r.wFracPT500 = w500 / r.sumW;
+        r.wFracPT1000 = w1000 / r.sumW;
+        r.wFracPT1500 = w1500 / r.sumW;
+        r.wFracPT2000 = w2000 / r.sumW;
     }
 
     r.score = balancedScore(r.fracPT50, r.neffRatio);
@@ -432,8 +463,8 @@ static void writeSummaryHeader(ofstream& out) {
         << "a_pT,b_tau,c_lumi,e_logpT,g_tworegion,"
         << "sumManualW,sumManualW2,meanManualW,stdManualW,NeffManual,NeffManualOverN,"
         << "meanPTHat,maxPTHat,"
-        << "fracPT10,fracPT20,fracPT50,fracPT100,"
-        << "wFracPT10,wFracPT20,wFracPT50,wFracPT100,score\n";
+        << "fracPT10,fracPT20,fracPT50,fracPT100,fracPT200,fracPT500,fracPT1000,fracPT1500,fracPT2000,"
+        << "wFracPT10,wFracPT20,wFracPT50,wFracPT100,wFracPT200,wFracPT500,wFracPT1000,wFracPT1500,wFracPT2000,score\n";
 }
 
 static void writeSummaryRow(ofstream& out, const string& stage, int round, int cand,
@@ -447,14 +478,26 @@ static void writeSummaryRow(ofstream& out, const string& stage, int round, int c
         << r.neff << "," << r.neffRatio << ","
         << r.meanPTHat << "," << r.maxPTHat << ","
         << r.fracPT10 << "," << r.fracPT20 << "," << r.fracPT50 << "," << r.fracPT100 << ","
+        << r.fracPT200 << "," << r.fracPT500 << "," << r.fracPT1000 << "," << r.fracPT1500 << "," << r.fracPT2000 << ","
         << r.wFracPT10 << "," << r.wFracPT20 << "," << r.wFracPT50 << "," << r.wFracPT100 << ","
+        << r.wFracPT200 << "," << r.wFracPT500 << "," << r.wFracPT1000 << "," << r.wFracPT1500 << "," << r.wFracPT2000 << ","
         << r.score << "\n";
 }
 
 static void printCandidateResult(const BatchResult& r, bool acceptable, bool isBest) {
     cout << "  accepted=" << r.accepted
          << ", fracPT50=" << r.fracPT50
-         << ", wFracPT50=" << scientific << r.wFracPT50 << fixed
+         << ", fracPT100=" << r.fracPT100
+         << ", fracPT200=" << r.fracPT200
+         << ", fracPT500=" << r.fracPT500
+         << ", fracPT1000=" << r.fracPT1000
+         << ", fracPT2000=" << r.fracPT2000
+         << ", wFracPT50=" << scientific << r.wFracPT50
+         << ", wFracPT100=" << r.wFracPT100
+         << ", wFracPT200=" << r.wFracPT200
+         << ", wFracPT500=" << r.wFracPT500
+         << ", wFracPT1000=" << r.wFracPT1000
+         << ", wFracPT2000=" << r.wFracPT2000 << fixed
          << ", Neff/N=" << r.neffRatio
          << ", score=" << r.score
          << ", meanW=" << r.meanW
@@ -603,7 +646,19 @@ int main(int argc, char* argv[]) {
     cout << "Best search score             = " << bestScore << "\n";
     cout << "Final validation score        = " << finalRes.score << "\n";
     cout << "Final generated fracPT50      = " << finalRes.fracPT50 << "\n";
+    cout << "Final generated fracPT100     = " << finalRes.fracPT100 << "\n";
+    cout << "Final generated fracPT200     = " << finalRes.fracPT200 << "\n";
+    cout << "Final generated fracPT500     = " << finalRes.fracPT500 << "\n";
+    cout << "Final generated fracPT1000    = " << finalRes.fracPT1000 << "\n";
+    cout << "Final generated fracPT1500    = " << finalRes.fracPT1500 << "\n";
+    cout << "Final generated fracPT2000    = " << finalRes.fracPT2000 << "\n";
     cout << "Final weighted wFracPT50      = " << scientific << finalRes.wFracPT50 << fixed << "\n";
+    cout << "Final weighted wFracPT100     = " << scientific << finalRes.wFracPT100 << fixed << "\n";
+    cout << "Final weighted wFracPT200     = " << scientific << finalRes.wFracPT200 << fixed << "\n";
+    cout << "Final weighted wFracPT500     = " << scientific << finalRes.wFracPT500 << fixed << "\n";
+    cout << "Final weighted wFracPT1000    = " << scientific << finalRes.wFracPT1000 << fixed << "\n";
+    cout << "Final weighted wFracPT1500    = " << scientific << finalRes.wFracPT1500 << fixed << "\n";
+    cout << "Final weighted wFracPT2000    = " << scientific << finalRes.wFracPT2000 << fixed << "\n";
     cout << "Final Neff/N                  = " << finalRes.neffRatio << "\n";
     cout << "Best parameters:\n"
          << "  a_pT        = " << bestPars.a_pT << "\n"
